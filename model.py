@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May 29 17:46:28 2022
+Created on Sun Jul 24 21:39:21 2022
 
 @author: sjurm
 """
@@ -13,30 +13,34 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 
 actions = [
-    'left',
-    'right'
+    '안녕하세요',
+    '구경',
+    '기차'
     
 ]
 
 
 data = np.concatenate([
-    
-    np.load('seq_구경F_1654513393.npy'),
-    np.load('seq_구경L_1654513326.npy'),
-    np.load('seq_구경R_1654513257.npy'),
-    np.load('seq_구경U_1654513187.npy'),
-    np.load('seq_기차F_1654511668.npy'),
-    np.load('seq_기차L_1654511760.npy'),
-    np.load('seq_기차R_1654511924.npy'),
-    np.load('seq_기차U_1654512027.npy')
+    np.load('dataset/seq_hi_1_1658664432.npy'),
+    np.load('dataset/seq_hi_2_1658664589.npy'),
+    np.load('dataset/seq_hi_3_1658664631.npy'),
+    np.load('dataset/seq_hi_4_1658664709.npy'),
+    np.load('dataset/seq_구경F_1654513393.npy'),
+    np.load('dataset/seq_구경L_1654513326.npy'),
+    np.load('dataset/seq_구경R_1654513257.npy'),
+    np.load('dataset/seq_구경U_1654513187.npy'),
+    np.load('dataset/seq_기차F_1654511668.npy'),
+    np.load('dataset/seq_기차L_1654511760.npy'),
+    np.load('dataset/seq_기차R_1654511924.npy'),
+    np.load('dataset/seq_기차U_1654512027.npy')
     
     
 ], axis=0)   
 
 data2 = np.concatenate([
-    
-    np.load('seq_구경D_1654513465.npy'),
-    np.load('seq_기차D_1654511543.npy')
+    np.load('dataset/seq_hi_5_1658664741.npy'),
+    np.load('dataset/seq_구경D_1654513465.npy'),
+    np.load('dataset/seq_기차D_1654511543.npy')
     
     
 ], axis=0)  
@@ -85,12 +89,14 @@ print(x_val.shape, y_val.shape)
 x_train.shape[1:3]
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.layers import LSTM, Dense, Dropout
 
 model = Sequential([
     LSTM(64, activation='relu', input_shape=x_train.shape[1:3]),
     Dense(32, activation='relu'),
     Dense(32, activation='relu'),
+    Dropout(0.3),
+    Dropout(0.2),
     Dense(32, activation='relu'),
     Dense(len(actions), activation='softmax')
 ])
@@ -139,5 +145,3 @@ model = load_model('models/model.h5')
 y_pred = model.predict(x_val)
 
 multilabel_confusion_matrix(np.argmax(y_val, axis=1), np.argmax(y_pred, axis=1))
-
-
