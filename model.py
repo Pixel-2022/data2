@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 24 21:39:21 2022
+Created on Mon Jul 25 15:13:39 2022
 
 @author: sjurm
 """
@@ -93,10 +93,10 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 
 model = Sequential([
     LSTM(64, activation='relu', input_shape=x_train.shape[1:3]),
+    Dropout(0.3),
     Dense(32, activation='relu'),
     Dense(32, activation='relu'),
     Dropout(0.3),
-    Dropout(0.2),
     Dense(32, activation='relu'),
     Dense(len(actions), activation='softmax')
 ])
