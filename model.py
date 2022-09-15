@@ -1,147 +1,121 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 25 15:13:39 2022
+Created on Sun Aug 21 16:32:38 2022
 
 @author: sjurm
 """
 
 import numpy as np
-import os
+import tensorflow as tf
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-
+from keras.layers.rnn.dropout_rnn_cell_mixin import DropoutRNNCellMixin
+from tensorflow.python.ops.nn_ops import dropout
+from tensorflow.python.ops.gen_nn_ops import relu
 
 actions = [
     '안녕하세요',
-    '구경',
-    '기차'
+    '먹다',
+    '밥',
+    '만나다'
     
 ]
 
-
 data = np.concatenate([
-    np.load('dataset/seq_hi_1_1658664432.npy'),
-    np.load('dataset/seq_hi_2_1658664589.npy'),
-    np.load('dataset/seq_hi_3_1658664631.npy'),
-    np.load('dataset/seq_hi_4_1658664709.npy'),
-    np.load('dataset/seq_구경F_1654513393.npy'),
-    np.load('dataset/seq_구경L_1654513326.npy'),
-    np.load('dataset/seq_구경R_1654513257.npy'),
-    np.load('dataset/seq_구경U_1654513187.npy'),
-    np.load('dataset/seq_기차F_1654511668.npy'),
-    np.load('dataset/seq_기차L_1654511760.npy'),
-    np.load('dataset/seq_기차R_1654511924.npy'),
-    np.load('dataset/seq_기차U_1654512027.npy')
+    
+    np.load('dataset2/seq_hi_1_1661663755.npy'),
+    np.load('dataset2/seq_hi_2_1661663809.npy'),
+    np.load('dataset2/seq_hi_3_1661663843.npy'),
+    np.load('dataset2/seq_hi_4_1661663887.npy'),
+    np.load('dataset2/seq_eat_1_1661663981.npy'),
+    np.load('dataset2/seq_eat_2_1661664034.npy'),
+    np.load('dataset2/seq_eat_3_1661664070.npy'),
+    np.load('dataset2/seq_eat_4_1661664107.npy'),
+    np.load('dataset2/seq_bob_1_1661664188.npy'),
+    np.load('dataset2/seq_bob_2_1661664238.npy'),
+    np.load('dataset2/seq_bob_3_1661664273.npy'),
+    np.load('dataset2/seq_bob_4_1661664322.npy'),
+    np.load('dataset2/seq_meet_1_1661664416.npy'),
+    np.load('dataset2/seq_meet_2_1661664458.npy'),
+    np.load('dataset2/seq_meet_3_1661664486.npy'),
+    np.load('dataset2/seq_meet_4_1661664522.npy'),
     
     
 ], axis=0)   
+data.shape
 
 data2 = np.concatenate([
-    np.load('dataset/seq_hi_5_1658664741.npy'),
-    np.load('dataset/seq_구경D_1654513465.npy'),
-    np.load('dataset/seq_기차D_1654511543.npy')
+    np.load('dataset2/seq_hi_5_1661663923.npy'),
+    np.load('dataset2/seq_eat_5_1661664150.npy'),
+    np.load('dataset2/seq_bob_5_1661664366.npy'),
+    np.load('dataset2/seq_meet_5_1661664574.npy')
+    
     
     
 ], axis=0)  
 data.shape
 
-
-x_data = data[:, :, :-1]
+x_data = data[:,:,:-1]
 x_data2 = data2[:,:,:-1]
-
-labels = data[:, 0, -1]
+labels = data[:,0,-1]
 labels2 = data2[:, 0, -1]
+y_data=tf.keras.utils.to_categorical(labels, num_classes=len(actions))
 
-print(x_data.shape)
-print(labels.shape)
-
-
-from tensorflow.keras.utils import to_categorical
-
-y_data = to_categorical(labels, num_classes=len(actions))
-y_data.shape
-
-y_data2 = to_categorical(labels2, num_classes=len(actions))
-
-
-
-from sklearn.model_selection import train_test_split
+y_data2 =tf.keras.utils.to_categorical(labels2, num_classes=len(actions))
 
 x_data = x_data.astype(np.float32)
-y_data = y_data.astype(np.float32)
+y_data = labels.astype(np.float32)
 
 x_data2 = x_data2.astype(np.float32)
 y_data2 = y_data2.astype(np.float32)
 
-
-#x_train, x_val, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2, random_state=2021)
 x_train = x_data
-x_val = x_data2
 
+
+x_val = x_data2
 y_train = y_data
+
 y_val = y_data2
 
-print(x_train.shape, y_train.shape)
-print(x_val.shape, y_val.shape)
 
+# model2 = tf.keras.models.Sequential([
+#    tf.keras.layers.Input(shape=(30,432),name='input'),
+#    tf.keras.layers.LSTM(20, time_major=False, return_sequences=True),
+#    tf.keras.layers.Flatten(),
+#    tf.keras.layers.Dense(3, activation=tf.nn.softmax, name='output')
+# ])
 
-x_train.shape[1:3]
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-
-model = Sequential([
-    LSTM(64, activation='relu', input_shape=x_train.shape[1:3]),
-    Dropout(0.3),
-    Dense(32, activation='relu'),
-    Dense(32, activation='relu'),
-    Dropout(0.3),
-    Dense(32, activation='relu'),
-    Dense(len(actions), activation='softmax')
+model2 = tf.keras.models.Sequential([
+   tf.keras.layers.Input(shape=(30,368),name='input'),
+   tf.keras.layers.LSTM(64, time_major=False, return_sequences=True),
+   tf.keras.layers.Dropout(0.3),
+   tf.keras.layers.Dense(32, activation=tf.nn.relu),
+   tf.keras.layers.Dense(32, activation=tf.nn.relu),
+   tf.keras.layers.Dropout(0.3),
+   tf.keras.layers.Dense(64, activation=tf.nn.relu),
+   tf.keras.layers.Flatten(),
+   tf.keras.layers.Dense(4, activation=tf.nn.softmax, name='output')
 ])
+model2.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model2.summary()
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
-model.summary()
-
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
-
-history = model.fit(
-    x_train,
-    y_train,
-    validation_data=(x_val, y_val),
-    epochs=200,
-    callbacks=[
-        ModelCheckpoint('models/model.h5', monitor='val_acc', verbose=1, save_best_only=True, mode='auto'),
-        ReduceLROnPlateau(monitor='val_acc', factor=0.5, patience=50, verbose=1, mode='auto')
-    ]
-)
+_EPOCHS = 200
 
 
+model2.fit(x_train, labels, epochs=_EPOCHS)
 
-import matplotlib.pyplot as plt
+run_model = tf.function(lambda x: model2(x))
+# This is important, let's fix the input size.
+BATCH_SIZE = 1
+STEPS = 30
+INPUT_SIZE = 368
+concrete_func = run_model.get_concrete_function(
+    tf.TensorSpec([BATCH_SIZE, STEPS, INPUT_SIZE], model2.inputs[0].dtype))
 
-fig, loss_ax = plt.subplots(figsize=(16, 10))
-acc_ax = loss_ax.twinx()
+# model directory.
+MODEL_DIR = "AAA"
+model2.save(MODEL_DIR, save_format="tf", signatures=concrete_func)
 
-loss_ax.plot(history.history['loss'], 'y', label='train loss')
-loss_ax.plot(history.history['val_loss'], 'r', label='val loss')
-loss_ax.set_xlabel('epoch')
-loss_ax.set_ylabel('loss')
-loss_ax.legend(loc='upper left')
-
-acc_ax.plot(history .history['acc'], 'b', label='train acc')
-acc_ax.plot(history.history['val_acc'], 'g', label='val acc')
-acc_ax.set_ylabel('accuracy')
-acc_ax.legend(loc='upper left')
-
-plt.show()
-
-from sklearn.metrics import multilabel_confusion_matrix
-from tensorflow.keras.models import load_model
-
-model = load_model('models/model.h5')
-
-y_pred = model.predict(x_val)
-
-multilabel_confusion_matrix(np.argmax(y_val, axis=1), np.argmax(y_pred, axis=1))
+converter = tf.lite.TFLiteConverter.from_saved_model(MODEL_DIR)
+#converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS, tf.lite.OpsSet.SELECT_TF_OPS]
+tflite_model = converter.convert()
+open("AAAA.tflite", "wb").write(tflite_model)
