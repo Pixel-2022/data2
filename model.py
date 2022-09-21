@@ -1,57 +1,60 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug 21 16:32:38 2022
+Created on Thu Sep 22 01:55:39 2022
+
+@author: sjurm
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Sep 22 00:49:36 2022
 
 @author: sjurm
 """
 
 import numpy as np
+import os
 import tensorflow as tf
 
 from keras.layers.rnn.dropout_rnn_cell_mixin import DropoutRNNCellMixin
 from tensorflow.python.ops.nn_ops import dropout
 from tensorflow.python.ops.gen_nn_ops import relu
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
-actions = [
-    '안녕하세요',
-    '먹다',
-    '밥',
-    '만나다'
-    
-]
+dir_path = "train"
+dir_path2 = "test"
+actions = []
+#data = np.concatenate([np.load('dataset3/seq_가족_F_1663653962.npy')])
 
-data = np.concatenate([
-    
-    np.load('dataset2/seq_hi_1_1661663755.npy'),
-    np.load('dataset2/seq_hi_2_1661663809.npy'),
-    np.load('dataset2/seq_hi_3_1661663843.npy'),
-    np.load('dataset2/seq_hi_4_1661663887.npy'),
-    np.load('dataset2/seq_eat_1_1661663981.npy'),
-    np.load('dataset2/seq_eat_2_1661664034.npy'),
-    np.load('dataset2/seq_eat_3_1661664070.npy'),
-    np.load('dataset2/seq_eat_4_1661664107.npy'),
-    np.load('dataset2/seq_bob_1_1661664188.npy'),
-    np.load('dataset2/seq_bob_2_1661664238.npy'),
-    np.load('dataset2/seq_bob_3_1661664273.npy'),
-    np.load('dataset2/seq_bob_4_1661664322.npy'),
-    np.load('dataset2/seq_meet_1_1661664416.npy'),
-    np.load('dataset2/seq_meet_2_1661664458.npy'),
-    np.load('dataset2/seq_meet_3_1661664486.npy'),
-    np.load('dataset2/seq_meet_4_1661664522.npy'),
-    
-    
-], axis=0)   
-data.shape
+for (root, directories, files) in os.walk(dir_path):
+    for file in files:
+        file_path = os.path.join(root, file)
+        file_path2 = file_path.split("\\")
+        file_path3 = file_path2[1].split(".")
+        print(file_path3[0])
+        
+        data = np.concatenate([
+            np.load(file_path)],axis=0)
+        
+     
+        
 
-data2 = np.concatenate([
-    np.load('dataset2/seq_hi_5_1661663923.npy'),
-    np.load('dataset2/seq_eat_5_1661664150.npy'),
-    np.load('dataset2/seq_bob_5_1661664366.npy'),
-    np.load('dataset2/seq_meet_5_1661664574.npy')
-    
-    
-    
-], axis=0)  
+for (root2, directories2, files2) in os.walk(dir_path2):
+    for file_test in files2:
+        file_path_test = os.path.join(root2, file_test)
+        file_path2_test = file_path_test.split("\\")
+        file_path3_test = file_path2_test[1].split(".")
+        action = file_path3_test[0]
+        action_split = action[4:]
+        action_split2 = action_split.split("_", maxsplit=2)
+        #print(action_split2[0])
+        
+        actions.append(action_split2[0])
+        
+        data2 = np.concatenate([
+            np.load(file_path_test)],axis=0)
+        
 data.shape
 
 x_data = data[:,:,:-1]
@@ -85,13 +88,13 @@ y_val = y_data2
 # ])
 
 model2 = tf.keras.models.Sequential([
-   tf.keras.layers.Input(shape=(30,368),name='input'),
+   tf.keras.layers.Input(shape=(30,523),name='input'),
    tf.keras.layers.LSTM(64, time_major=False, return_sequences=True),
-   tf.keras.layers.Dropout(0.3),
    tf.keras.layers.Dense(32, activation=tf.nn.relu),
    tf.keras.layers.Dense(32, activation=tf.nn.relu),
+   tf.keras.layers.Dense(32, activation=tf.nn.relu),
    tf.keras.layers.Dropout(0.3),
-   tf.keras.layers.Dense(64, activation=tf.nn.relu),
+   tf.keras.layers.Dense(32, activation=tf.nn.relu),
    tf.keras.layers.Flatten(),
    tf.keras.layers.Dense(4, activation=tf.nn.softmax, name='output')
 ])
@@ -107,7 +110,7 @@ run_model = tf.function(lambda x: model2(x))
 # This is important, let's fix the input size.
 BATCH_SIZE = 1
 STEPS = 30
-INPUT_SIZE = 368
+INPUT_SIZE = 523
 concrete_func = run_model.get_concrete_function(
     tf.TensorSpec([BATCH_SIZE, STEPS, INPUT_SIZE], model2.inputs[0].dtype))
 
