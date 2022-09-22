@@ -96,7 +96,7 @@ model2 = tf.keras.models.Sequential([
    tf.keras.layers.Dropout(0.3),
    tf.keras.layers.Dense(32, activation=tf.nn.relu),
    tf.keras.layers.Flatten(),
-   tf.keras.layers.Dense(4, activation=tf.nn.softmax, name='output')
+   tf.keras.layers.Dense(33, activation=tf.nn.softmax, name='output')
 ])
 model2.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 model2.summary()
