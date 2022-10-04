@@ -13,7 +13,7 @@ for (root, directories, files) in os.walk(dir_path):
         d_path=os.path.join(root,dir)
         d_path2 = d_path.split("\\")
         d_path2=d_path2[1]
-        idx=d_path2
+        idx=float(d_path2)
         for(root2, directories, files)in os.walk(d_path):
             for file in files:
                 file_path = os.path.join(root2, file)
@@ -409,7 +409,7 @@ for (root, directories, files) in os.walk(dir_path):
                             #print("pose 각도", d3)
                             #print("얼굴", d4)
                             # cv2.imwrite('tmp4/'+str(num)+'.png',img)
-                        hands.extend(idx)
+                        hands.extend([idx])
                         all.append(hands)
                         num += 1
                         a=0
