@@ -18,6 +18,11 @@ from keras import optimizers
 from keras.callbacks import EarlyStopping
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+config.gpu_options.per_process_gpu_memory_fraction = 0.9
+
 data=[]
 data2=[]
 dir_path = "train"
@@ -52,8 +57,11 @@ for (root2, directories2, files2) in os.walk(dir_path2):
         action_split = action[4:]
         action_split2 = action_split.split("_", maxsplit=2)
         #print(action_split2[0])
-        
-        actions.append(action_split2[0])
+        if action_split2[0] in actions:
+            continue
+        else:
+            actions.append(action_split2[0])
+
         if data2==[]:
             data2 = np.concatenate([
             np.load(file_path_test)],axis=0)
@@ -62,6 +70,7 @@ for (root2, directories2, files2) in os.walk(dir_path2):
             np.load(file_path_test)],axis=0)
         
 print(data.shape)
+print(actions)
 
 x_data = data[:,:,:-1]
 x_data2 = data2[:,:,:-1]
@@ -103,10 +112,11 @@ model2 = tf.keras.models.Sequential([
    tf.keras.layers.Dense(1024, activation=tf.nn.relu),
    tf.keras.layers.Dropout(0.5),
    tf.keras.layers.Flatten(),
-   tf.keras.layers.Dense(10, activation=tf.nn.softmax, name='output')
+   tf.keras.layers.Dense(11, activation=tf.nn.softmax, name='output')
 ])
 sgd = optimizers.SGD(lr=0.00005, decay = 1e-6, momentum=0.9, nesterov=True)
 model2.compile(optimizer=sgd, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
 model2.summary()
 
 _EPOCHS = 500
